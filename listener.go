@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -27,10 +28,11 @@ func listen() {
 }
 
 func handle(con net.Conn) {
-	var command string
+	scanner := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("Command : ")
-		fmt.Scan(&command)
+		command, _ := scanner.ReadString('\n')
+		command = command[:len(command)-1]
 		con.Write([]byte(command))
 		buf := make([]byte, 1024)
 		n, _ := con.Read(buf)
